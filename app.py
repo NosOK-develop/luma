@@ -15,6 +15,10 @@ app.config['ASSETS_DEBUG'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join('static')
 pagedown = PageDown(app)
 
+# Считываем URL базы данных из переменных окружения Render
+db_url = os.environ.get('DATABASE_URL')
+db_session.global_init(db_url)
+
 # Обеспечение структуры папок загрузок
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'images'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'files'), exist_ok=True)
@@ -93,12 +97,10 @@ init_sockets(socketio)
 with open("luma_client.log", "w") as file:
     file.write('')
 # --- РЕГИСТРАЦИЯ МОДУЛЕЙ И ИНИЦИАЛИЗАЦИЯ (Вне функций) ---
-# Считываем URL базы данных из переменных окружения Render
-db_url = os.environ.get('DATABASE_URL')
-db_session.global_init(db_url)
+
 
 # Запускаем CLI в фоновом потоке, если необходимо
-start_admin_cli()
+#start_admin_cli()
 
 db_sess = db_session.create_session()
 try:
