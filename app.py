@@ -90,52 +90,45 @@ app.register_blueprint(messenger_bp)
 app.register_blueprint(admin_bp)
 init_sockets(socketio)
 
+with open("luma_client.log", "w") as file:
+    file.write('')
+# --- РЕГИСТРАЦИЯ МОДУЛЕЙ И ИНИЦИАЛИЗАЦИЯ (Вне функций) ---
+# Считываем URL базы данных из переменных окружения Render
+db_url = os.environ.get('DATABASE_URL')
+db_session.global_init(db_url)
 
-def main():
-    with open('luma_client.log', 'w') as file:
-        file.write('')
-    # Считываем URL базы данных из переменных окружения Render
-    db_url = os.environ.get('DATABASE_URL')
-    db_session.global_init(db_url)
+# Запускаем CLI в фоновом потоке, если необходимо
+start_admin_cli()
 
-    start_admin_cli()
-
-    db_sess = db_session.create_session()
-    try:
-        # УДАЛЕНО: Строка PRAGMA auto_vacuum удалена, так как она ломает PostgreSQL
-
-        # Авто-создание Главного Администратора
-        admin_nickname = "Luma"
-        chief_admin = db_sess.query(User).filter(User.nickname == admin_nickname).first()
-        if not chief_admin:
-            print(f"[SYSTEM] Аккаунт Главного Администратора @{admin_nickname} не обнаружен. Инициализация...")
-            root_admin = User(
-                email="admin@luma.media",
-                nickname=admin_nickname,
-                name="Luma Official",
-                about="Официальный системный аккаунт Главного Администратора медиаплатформы Luma.",
-                role_level=4
-            )
-            root_admin.set_password("LumaRootPassword2026")
-            db_sess.add(root_admin)
+db_sess = db_session.create_session()
+try:
+    # Авто-создание Главного Администратора
+    admin_nickname = "Luma"
+    chief_admin = db_sess.query(User).filter(User.nickname == admin_nickname).first()
+    if not chief_admin:
+        print(f"[SYSTEM] Аккаунт Главного Администратора @{admin_nickname} не обнаружен. Инициализация...")
+        root_admin = User(
+            email="admin@luma.media",
+            nickname=admin_nickname,
+            name="Luma Official",
+            about="Официальный системный аккаунт Главного Администратора медиаплатформы Luma.",
+            role_level=4
+        )
+        root_admin.set_password("LumaRootPassword2026")
+        db_sess.add(root_admin)
+        db_sess.commit()
+        print(f"[SYSTEM] Главный администратор @{admin_nickname} успешно создан. Пароль: LumaRootPassword2026")
+    else:
+        if chief_admin.role_level != 4:
+            chief_admin.role_level = 4
             db_sess.commit()
-            print(f"[SYSTEM] Главный администратор @{admin_nickname} успешно создан. Пароль: LumaRootPassword2026")
-        else:
-            if chief_admin.role_level != 4:
-                chief_admin.role_level = 4
-                db_sess.commit()
-                print(
-                    f"[SYSTEM] Права аккаунта @{admin_nickname} принудительно обновлены до уровня Главного Администратора.")
-    except Exception as e:
-        print(f"[CRITICAL] Ошибка инициализации системных таблиц Luma: {e}")
-    finally:
-        db_sess.close()
+            print(f"[SYSTEM] Права аккаунта @{admin_nickname} принудительно обновлены до уровня Главного Администратора.")
+except Exception as e:
+    print(f"[CRITICAL] Ошибка инициализации системных таблиц Luma: {e}")
+finally:
+    db_sess.close()
 
-    # Динамический порт под требования хостинга Render
-    port = int(os.environ.get("PORT", 5000))
-    # Переключаем host на 0.0.0.0, чтобы сервер принимал внешние запросы
-    socketio.run(app, host='0.0.0.0', port=port, debug=False, use_reloader=False, allow_unsafe_werkzeug=True)
-
-
+# Этот блок сработает только при запуске локально на ПК через "python app.py"
 if __name__ == '__main__':
-    main()
+    port = int(os.environ.get("PORT", 5000))
+    socketio.run(app, host='127.0.0.1', port=port, debug=True)
