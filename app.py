@@ -84,7 +84,9 @@ from routes.sockets import init_sockets
 from routes.social import social_bp
 from routes.inventory import inventory_bp
 from routes.post import post_bp
+from routes.luma_web_cli import luma_web_cli_bp
 
+app.register_blueprint(luma_web_cli_bp)
 app.register_blueprint(post_bp)
 app.register_blueprint(inventory_bp)
 app.register_blueprint(social_bp)
