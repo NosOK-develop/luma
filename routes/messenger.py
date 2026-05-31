@@ -4,7 +4,9 @@ from flask import Blueprint, render_template, request, redirect, url_for, abort,
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from data import db_session
+from data.chats import ChatGroup
 from data.users import User, LumaMediaAccount  # Убедитесь в правильности импортов ваших моделей
+from forms.chats import CreateChatGroupForm
 
 messenger_bp = Blueprint('messenger', __name__)
 
@@ -141,7 +143,7 @@ def save_client_logs():
     except Exception:
         return {"status": "error"}, 500
 
-@messenger_bp.route('/messenger/group/create', methods=['POST'])
+@messenger_bp.route('/messenger/group/create', methods=['POST', 'GET'])
 @login_required
 def create_group():
     form = CreateChatGroupForm()
@@ -154,4 +156,4 @@ def create_group():
             return redirect(url_for('auth.login'))
         finally:
             db_sess.close()
-    return render_template('register.html', title='Регистрация', form=form)
+    return render_template('create_group.html', title='Создать группу', form=form)
