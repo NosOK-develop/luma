@@ -19,6 +19,11 @@ class EditProfileForm(FlaskForm):
         validators=[DataRequired(), Email()],
         render_kw={"class": "form-control bg-secondary text-white border-0", "placeholder": "name@example.com"}
     )
+    password = StringField(
+        'Пароль',
+        validators=[DataRequired("Введите новый или старый пароль, это обязательно"), Length(min=6, max=20)],
+        render_kw={"class": "form-control bg-secondary text-white border-0"}
+    )
     about = TextAreaField(
         'О себе',
         validators=[Optional(), Length(max=500)],
