@@ -140,3 +140,18 @@ def save_client_logs():
         return {"status": "success"}, 200
     except Exception:
         return {"status": "error"}, 500
+
+@messenger_bp.route('/messenger/group/create', methods=['POST'])
+@login_required
+def create_group():
+    form = CreateChatGroupForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        try:
+            group = ChatGroup(title=form.title.data, type=form.type.data, creator_id=current_user.id, description=form.description.data)
+            db_sess.add(group)
+            db_sess.commit()
+            return redirect(url_for('auth.login'))
+        finally:
+            db_sess.close()
+    return render_template('register.html', title='Регистрация', form=form)
